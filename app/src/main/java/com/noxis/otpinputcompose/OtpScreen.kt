@@ -17,6 +17,8 @@ import com.noxis.otpinputcompose.ui.theme.OtpInputComposeTheme
 
 @Composable
 fun OtpScreen(
+    state: OtpState,
+    onAction: (OtpAction) -> Unit,
     modifier: Modifier = Modifier,
     focusRequesters: List<FocusRequester>,
 ) {
@@ -32,16 +34,25 @@ fun OtpScreen(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
         ) {
-            (0..3).forEach { number ->
+            state.code.forEachIndexed { index, number ->
                 OtpInputField(
                     modifier = Modifier
                         .weight(1f)
                         .aspectRatio(1f),
                     number = number,
-                    focusRequester =  focusRequesters[0] ,
-                    onNumberChanged = {},
-                    onFocusChanged = {},
-                    onKeyboardBack = { /*TODO*/ })
+                    focusRequester = focusRequesters[index],
+                    onNumberChanged = { newNumber ->
+                        onAction(OtpAction.OnEnterNumber(newNumber, index))
+                    },
+                    onFocusChanged = { isFocused ->
+                        if (isFocused) {
+                            onAction(OtpAction.OnChangeFieldFocused(index))
+                        }
+                    },
+                    onKeyboardBack = {
+                        onAction(OtpAction.OnKeyboardBack)
+                    }
+                )
             }
 
         }
@@ -56,6 +67,8 @@ private fun OtpScreenPreview() {
             List(4) { FocusRequester() }
         }
         OtpScreen(
+            state = OtpState(),
+            onAction = {},
             focusRequesters = focusRequesters
         )
     }
